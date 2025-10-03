@@ -184,11 +184,17 @@ class DataPreprocessor:
 
         def combine_profile(row: pd.Series) -> str:
             """Combine user profile fields into text."""
+            import re
+
             parts = []
 
             # Add bio if available
             if pd.notna(row.get('bio')) and str(row['bio']).strip():
-                parts.append(str(row['bio']).strip())
+                bio_text = str(row['bio']).strip()
+                # Limit bio length to prevent token overflow (max ~800 chars)
+                if len(bio_text) > 800:
+                    bio_text = bio_text[:800] + "..."
+                parts.append(bio_text)
 
             # Add job title
             if pd.notna(row.get('job_title')):
@@ -205,8 +211,20 @@ class DataPreprocessor:
             # Combine all parts
             text = " ".join(parts)
 
-            # Clean text: lowercase, strip whitespace
+            # Clean text
             text = text.lower().strip()
+
+            # Remove URLs (simple pattern)
+            text = re.sub(r'http\S+|www\.\S+', '', text)
+
+            # Normalize whitespace (multiple spaces/newlines to single space)
+            text = re.sub(r'\s+', ' ', text)
+
+            # Remove excessive punctuation (more than 3 repeating)
+            text = re.sub(r'([!?.]{3,})', '...', text)
+
+            # Final strip
+            text = text.strip()
 
             # Ensure non-empty
             if not text:
