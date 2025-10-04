@@ -12,6 +12,7 @@ __all__ = [
     'BaseRecommender',
     'CollaborativeFilteringRecommender',
     'NLPRecommender',
+    'HybridRecommender',
 ]
 
 
@@ -26,4 +27,7 @@ def __getattr__(name):
     elif name == 'NLPRecommender':
         from src.models.nlp_recommender import NLPRecommender
         return NLPRecommender
+    elif name == 'HybridRecommender':
+        from src.models.hybrid_recommender import HybridRecommender
+        return HybridRecommender
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
