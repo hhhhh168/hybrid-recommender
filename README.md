@@ -84,7 +84,7 @@ _(To be added: Performance metrics and evaluation results)_
 
 ## Development
 
-See [CLAUDE.md](CLAUDE.md) for detailed development guidelines including:
+See [PROJECT_GUIDELINES.md](PROJECT_GUIDELINES) for detailed development guidelines including:
 - Code style requirements
 - Firestore schema reference
 - Commit conventions
