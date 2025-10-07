@@ -1,6 +1,6 @@
-# WorkHeart Hybrid Recommender System
+# Hybrid Recommender System
 
-A hybrid recommendation system for WorkHeart, a dating app for white-collar professionals. This system combines collaborative filtering and natural language processing to generate personalized match recommendations.
+A hybrid recommendation system for a dating app for white-collar professionals. This system combines collaborative filtering and natural language processing to generate personalized match recommendations.
 
 ## Overview
 
