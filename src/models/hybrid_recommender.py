@@ -212,6 +212,140 @@ class HybridRecommender(BaseRecommender):
 
         return recommendations
 
+    def batch_recommend(
+        self,
+        user_ids: List[str],
+        k: int = 10,
+        exclude_ids_dict: Optional[Dict[str, Set[str]]] = None
+    ) -> Dict[str, List[Tuple[str, float]]]:
+        """
+        Generate recommendations for multiple users in batch (VECTORIZED).
+
+        This method provides significant speedup when evaluating many users by:
+        - Using batch_recommend() on underlying models when available
+        - Minimizing Python overhead
+        - Processing multiple users efficiently
+
+        Args:
+            user_ids: List of user IDs to generate recommendations for
+            k: Number of recommendations per user
+            exclude_ids_dict: Optional dict mapping user_id -> set of excluded IDs
+
+        Returns:
+            Dictionary mapping user_id -> list of (recommended_id, score) tuples
+        """
+        self._check_trained()
+
+        if exclude_ids_dict is None:
+            exclude_ids_dict = {}
+
+        results = {}
+        k_fetch = min(k * 3, 100)  # Fetch 3x candidates for combining
+
+        # Check if underlying models support batch recommendations
+        cf_has_batch = hasattr(self.cf_model, 'batch_recommend')
+        nlp_has_batch = hasattr(self.nlp_model, 'batch_recommend')
+
+        # Get CF recommendations (batched if available)
+        cf_batch_scores = {}
+        if self.cf_model is not None:
+            if cf_has_batch:
+                logger.debug("Using CF batch_recommend()")
+                try:
+                    cf_batch_results = self.cf_model.batch_recommend(
+                        user_ids, k=k_fetch, exclude_ids_dict=exclude_ids_dict
+                    )
+                    # Convert to scores dict
+                    for user_id, recs in cf_batch_results.items():
+                        cf_batch_scores[user_id] = {uid: score for uid, score in recs}
+                except Exception as e:
+                    logger.warning(f"CF batch_recommend failed: {e}. Using sequential.")
+                    cf_has_batch = False
+
+        # Get NLP recommendations (batched if available)
+        nlp_batch_scores = {}
+        if self.nlp_model is not None:
+            if nlp_has_batch:
+                logger.debug("Using NLP batch_recommend()")
+                try:
+                    nlp_batch_results = self.nlp_model.batch_recommend(
+                        user_ids, k=k_fetch, exclude_ids_dict=exclude_ids_dict
+                    )
+                    # Convert to scores dict
+                    for user_id, recs in nlp_batch_results.items():
+                        nlp_batch_scores[user_id] = {uid: score for uid, score in recs}
+                except Exception as e:
+                    logger.warning(f"NLP batch_recommend failed: {e}. Using sequential.")
+                    nlp_has_batch = False
+
+        # Process each user
+        for user_id in user_ids:
+            exclude_ids = exclude_ids_dict.get(user_id, set())
+
+            # Get weights for this user
+            alpha_cf, alpha_nlp = self._compute_adaptive_weights(user_id)
+
+            # Get CF scores (either from batch or sequential)
+            cf_scores = {}
+            if self.cf_model is not None:
+                if cf_has_batch and user_id in cf_batch_scores:
+                    cf_scores = cf_batch_scores[user_id]
+                else:
+                    try:
+                        cf_recs = self.cf_model.recommend(user_id, k=k_fetch, exclude_ids=exclude_ids)
+                        cf_scores = {uid: score for uid, score in cf_recs}
+                    except (ValueError, KeyError) as e:
+                        logger.warning(f"CF model failed for user {user_id}: {e}")
+
+            # Get NLP scores (either from batch or sequential)
+            nlp_scores = {}
+            if self.nlp_model is not None:
+                if nlp_has_batch and user_id in nlp_batch_scores:
+                    nlp_scores = nlp_batch_scores[user_id]
+                else:
+                    try:
+                        nlp_recs = self.nlp_model.recommend(user_id, k=k_fetch, exclude_ids=exclude_ids)
+                        nlp_scores = {uid: score for uid, score in nlp_recs}
+                    except (ValueError, KeyError) as e:
+                        logger.warning(f"NLP model failed for user {user_id}: {e}")
+
+            # Handle edge cases
+            if not cf_scores and not nlp_scores:
+                results[user_id] = []
+                continue
+
+            if not cf_scores:
+                results[user_id] = sorted(nlp_scores.items(), key=lambda x: x[1], reverse=True)[:k]
+                continue
+
+            if not nlp_scores:
+                results[user_id] = sorted(cf_scores.items(), key=lambda x: x[1], reverse=True)[:k]
+                continue
+
+            # Normalize and combine scores
+            cf_scores_norm = self._normalize_scores(cf_scores)
+            nlp_scores_norm = self._normalize_scores(nlp_scores)
+
+            combined_scores = {}
+            all_candidates = set(cf_scores_norm.keys()) | set(nlp_scores_norm.keys())
+
+            for candidate_id in all_candidates:
+                cf_score = cf_scores_norm.get(candidate_id, 0.0)
+                nlp_score = nlp_scores_norm.get(candidate_id, 0.0)
+                combined_scores[candidate_id] = alpha_cf * cf_score + alpha_nlp * nlp_score
+
+            # Sort and store top-K
+            recommendations = sorted(
+                combined_scores.items(),
+                key=lambda x: x[1],
+                reverse=True
+            )[:k]
+
+            results[user_id] = recommendations
+
+        logger.info(f"Batch recommendation complete: {len(user_ids)} users")
+        return results
+
     def score(
         self,
         user_id: str,

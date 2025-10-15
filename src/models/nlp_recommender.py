@@ -51,6 +51,7 @@ class NLPRecommender(BaseRecommender):
         # Model components (set during fit)
         self.model: Optional[SentenceTransformer] = None
         self.embeddings: Optional[np.ndarray] = None
+        self.similarity_matrix: Optional[np.ndarray] = None
         self.user_id_to_idx: Optional[Dict[str, int]] = None
         self.idx_to_user_id: Optional[Dict[int, str]] = None
         self.users_df: Optional[pd.DataFrame] = None
@@ -128,6 +129,17 @@ class NLPRecommender(BaseRecommender):
         logger.info(f"Embeddings shape: {self.embeddings.shape}")
         logger.info(f"Embedding dimension: {self.embeddings.shape[1]}")
 
+        # Pre-compute similarity matrix for fast inference
+        logger.info("Pre-computing similarity matrix...")
+        from sklearn.metrics.pairwise import cosine_similarity
+
+        self.similarity_matrix = cosine_similarity(self.embeddings)
+        logger.info(f"Similarity matrix shape: {self.similarity_matrix.shape}")
+
+        # Log memory usage
+        matrix_mb = self.similarity_matrix.nbytes / (1024 * 1024)
+        logger.info(f"Similarity matrix memory: {matrix_mb:.2f} MB")
+
         self.is_trained = True
         logger.info(f"✓ {self.name} training complete")
 
@@ -164,42 +176,113 @@ class NLPRecommender(BaseRecommender):
         # Add target user to exclusions
         exclude_ids = exclude_ids | {user_id}
 
-        # Get user embedding
+        # Get user index
         user_idx = self.user_id_to_idx[user_id]
-        user_embedding = self.embeddings[user_idx]
 
-        # Compute similarity with all other users
-        similarities = self._compute_all_similarities(user_embedding)
+        # Get pre-computed similarities for this user
+        similarities = self.similarity_matrix[user_idx]
 
         # Get user for preference filtering
         user = self.users_df[self.users_df['user_id'] == user_id].iloc[0]
+        user_gender = user['gender']
+        user_pref_gender = user.get('matching_pref_gender')
+        user_pref_age_min = user.get('matching_pref_age_min')
+        user_pref_age_max = user.get('matching_pref_age_max')
+        user_pref_use_location = user.get('matching_pref_use_location', False)
+        user_city = user.get('city')
 
-        # Filter and rank candidates
-        candidate_scores = {}
+        # Create boolean mask for valid candidates (vectorized - FAST!)
+        valid_mask = np.ones(len(similarities), dtype=bool)
 
-        for idx, similarity in enumerate(similarities):
-            candidate_id = self.idx_to_user_id[idx]
+        # Exclude target user
+        valid_mask[user_idx] = False
 
-            # Skip if excluded or is the target user
-            if candidate_id in exclude_ids or candidate_id == user_id:
-                continue
+        # Exclude other users if specified (vectorized - no loop!)
+        if exclude_ids:
+            exclude_indices = [self.user_id_to_idx[uid] for uid in exclude_ids if uid in self.user_id_to_idx]
+            if exclude_indices:
+                valid_mask[exclude_indices] = False
 
-            # Apply preference filters
-            if not self._passes_preferences(user, candidate_id):
-                continue
+        # Apply gender filter (vectorized)
+        candidate_genders = self.users_df['gender'].values
+        if pd.notna(user_pref_gender) and user_pref_gender != 'both':
+            valid_mask &= (candidate_genders == user_pref_gender)
 
-            candidate_scores[candidate_id] = float(similarity)
+        # Apply age filter (vectorized)
+        if pd.notna(user_pref_age_min) and pd.notna(user_pref_age_max):
+            candidate_ages = self.users_df['age'].values
+            valid_mask &= (candidate_ages >= user_pref_age_min) & (candidate_ages <= user_pref_age_max)
 
-        # Sort and return top-K
-        recommendations = sorted(
-            candidate_scores.items(),
-            key=lambda x: x[1],
-            reverse=True
-        )[:k]
+        # Apply location filter (vectorized)
+        if user_pref_use_location and pd.notna(user_city):
+            candidate_cities = self.users_df['city'].values
+            valid_mask &= (candidate_cities == user_city)
+
+        # Apply mask to similarities
+        valid_similarities = similarities.copy()
+        valid_similarities[~valid_mask] = -1  # Set invalid candidates to -1
+
+        # Get top-K indices using vectorized sort (FAST!)
+        top_k_indices = np.argsort(valid_similarities)[::-1][:k]
+
+        # Build recommendations list (only iterating K times, not 20,000!)
+        recommendations = []
+        for idx in top_k_indices:
+            if valid_similarities[idx] > 0:
+                candidate_id = self.idx_to_user_id[idx]
+                recommendations.append((candidate_id, float(valid_similarities[idx])))
 
         logger.debug(f"Generated {len(recommendations)} recommendations for user {user_id}")
 
         return recommendations
+
+    def batch_recommend(
+        self,
+        user_ids: List[str],
+        k: int = 10,
+        exclude_ids_dict: Optional[Dict[str, Set[str]]] = None
+    ) -> Dict[str, List[Tuple[str, float]]]:
+        """
+        Generate recommendations for multiple users in batch.
+
+        This method is more efficient than calling recommend() in a loop
+        as it minimizes repeated operations.
+
+        Args:
+            user_ids: List of user IDs to generate recommendations for
+            k: Number of recommendations per user
+            exclude_ids_dict: Optional dict mapping user_id -> set of excluded IDs
+
+        Returns:
+            Dictionary mapping user_id -> list of (recommended_id, score) tuples
+        """
+        self._check_trained()
+
+        if exclude_ids_dict is None:
+            exclude_ids_dict = {}
+
+        results = {}
+
+        for user_id in user_ids:
+            # Check if user exists
+            if user_id not in self.user_id_to_idx:
+                logger.warning(f"User {user_id} not found in training data")
+                results[user_id] = []
+                continue
+
+            # Get exclude set for this user
+            exclude_ids = exclude_ids_dict.get(user_id, set())
+
+            # Generate recommendations
+            try:
+                recommendations = self.recommend(user_id, k=k, exclude_ids=exclude_ids)
+                results[user_id] = recommendations
+            except Exception as e:
+                logger.warning(f"Error generating recommendations for {user_id}: {e}")
+                results[user_id] = []
+
+        logger.debug(f"Batch recommendation complete: {len(user_ids)} users")
+        return results
 
     def score(
         self,
@@ -221,11 +304,13 @@ class NLPRecommender(BaseRecommender):
         if user_id not in self.user_id_to_idx:
             raise ValueError(f"User {user_id} not found in training data")
 
-        # Get user embedding
+        # Get user index
         user_idx = self.user_id_to_idx[user_id]
-        user_embedding = self.embeddings[user_idx]
 
-        # Score each candidate
+        # Get pre-computed similarities for this user
+        user_similarities = self.similarity_matrix[user_idx]
+
+        # Score each candidate using pre-computed similarities
         scores = {}
         for candidate_id in candidate_ids:
             if candidate_id not in self.user_id_to_idx:
@@ -233,11 +318,7 @@ class NLPRecommender(BaseRecommender):
                 continue
 
             candidate_idx = self.user_id_to_idx[candidate_id]
-            candidate_embedding = self.embeddings[candidate_idx]
-
-            # Compute cosine similarity
-            similarity = self._compute_similarity(user_embedding, candidate_embedding)
-            scores[candidate_id] = float(similarity)
+            scores[candidate_id] = float(user_similarities[candidate_idx])
 
         return scores
 
@@ -260,6 +341,11 @@ class NLPRecommender(BaseRecommender):
         np.save(embeddings_path, self.embeddings)
         logger.info(f"Embeddings saved to {embeddings_path}")
 
+        # Save similarity matrix
+        similarity_path = filepath.parent / f"{filepath.stem}_similarity.npy"
+        np.save(similarity_path, self.similarity_matrix)
+        logger.info(f"Similarity matrix saved to {similarity_path}")
+
         # Save metadata
         metadata = {
             'name': self.name,
@@ -270,7 +356,8 @@ class NLPRecommender(BaseRecommender):
             'users_df': self.users_df,
             'profile_texts': self.profile_texts,
             'is_trained': self.is_trained,
-            'embedding_shape': self.embeddings.shape
+            'embedding_shape': self.embeddings.shape,
+            'similarity_matrix_path': str(similarity_path)
         }
 
         metadata_path = filepath.with_suffix('.pkl')
@@ -315,6 +402,19 @@ class NLPRecommender(BaseRecommender):
         self.users_df = metadata['users_df']
         self.profile_texts = metadata['profile_texts']
         self.is_trained = metadata['is_trained']
+
+        # Load similarity matrix
+        similarity_path = Path(metadata.get('similarity_matrix_path',
+                                           filepath.parent / f"{filepath.stem}_similarity.npy"))
+        if similarity_path.exists():
+            self.similarity_matrix = np.load(similarity_path)
+            logger.info(f"Similarity matrix loaded from {similarity_path}")
+        else:
+            # Fallback: recompute if not found
+            logger.warning(f"Similarity matrix not found at {similarity_path}, recomputing...")
+            from sklearn.metrics.pairwise import cosine_similarity
+            self.similarity_matrix = cosine_similarity(self.embeddings)
+            logger.info(f"Similarity matrix recomputed: {self.similarity_matrix.shape}")
 
         # Load sentence transformer model for potential re-encoding
         logger.info(f"Loading sentence transformer model: {self.model_name}...")

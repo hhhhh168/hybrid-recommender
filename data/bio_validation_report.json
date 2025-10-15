@@ -1,0 +1,284 @@
+{
+  "summary": {
+    "total_bios": 20000,
+    "quality_score": 80,
+    "grade": "B",
+    "timestamp": "2025-10-14T20:20:40.897209"
+  },
+  "validation_results": {
+    "duplicates": {
+      "total_unique_bios": 18641,
+      "total_bios": 20000,
+      "unique_ratio": 0.93205,
+      "exact_duplicates": 1031,
+      "high_frequency_count": 0,
+      "high_frequency_bios": [],
+      "most_common": [
+        {
+          "bio": "Introvert seeking golf partner.",
+          "count": 7
+        },
+        {
+          "bio": "Adventurer seeking scuba diving partner.",
+          "count": 6
+        },
+        {
+          "bio": "Thinker seeking podcasting partner.",
+          "count": 6
+        },
+        {
+          "bio": "Work in nonprofit. Good listener. No games, just genuine connections.",
+          "count": 5
+        },
+        {
+          "bio": "Pragmatist seeking mountain adventures partner.",
+          "count": 5
+        },
+        {
+          "bio": "Hopeless romantic seeking skiing partner.",
+          "count": 5
+        },
+        {
+          "bio": "Early bird seeking museum hopping partner.",
+          "count": 5
+        },
+        {
+          "bio": "Minimalist seeking tennis partner.",
+          "count": 5
+        },
+        {
+          "bio": "Ambivert seeking museum hopping partner.",
+          "count": 5
+        },
+        {
+          "bio": "Maximalist seeking stand-up comedy partner.",
+          "count": 5
+        }
+      ]
+    },
+    "length": {
+      "min_length": 26,
+      "max_length": 159,
+      "mean_length": 67.36085,
+      "median_length": 60.0,
+      "std_length": 25.69260861176809,
+      "too_short_count": 0,
+      "too_long_count": 0,
+      "too_short_examples": [],
+      "too_long_examples": [],
+      "mean_words": 10.23765,
+      "median_words": 8.0
+    },
+    "vocabulary": {
+      "total_words": 207552,
+      "unique_words": 571,
+      "unique_ratio": 0.002751117792167746,
+      "hapax_count": 0,
+      "hapax_ratio": 0.0,
+      "most_common_words": [
+        {
+          "word": "looking",
+          "count": 5147,
+          "frequency": 0.024798604687018194
+        },
+        {
+          "word": "someone",
+          "count": 5020,
+          "frequency": 0.024186709836571077
+        },
+        {
+          "word": "seeking",
+          "count": 3492,
+          "frequency": 0.016824699352451435
+        },
+        {
+          "word": "partner",
+          "count": 3202,
+          "frequency": 0.01542745914276904
+        },
+        {
+          "word": "me",
+          "count": 2687,
+          "frequency": 0.012946153253160654
+        },
+        {
+          "word": "work",
+          "count": 2581,
+          "frequency": 0.012435437866173297
+        },
+        {
+          "word": "find",
+          "count": 2142,
+          "frequency": 0.010320305272895467
+        },
+        {
+          "word": "also",
+          "count": 1994,
+          "frequency": 0.009607230958988591
+        },
+        {
+          "word": "know",
+          "count": 1994,
+          "frequency": 0.009607230958988591
+        },
+        {
+          "word": "how",
+          "count": 1994,
+          "frequency": 0.009607230958988591
+        },
+        {
+          "word": "unplug",
+          "count": 1994,
+          "frequency": 0.009607230958988591
+        },
+        {
+          "word": "person",
+          "count": 1709,
+          "frequency": 0.008234081097748997
+        },
+        {
+          "word": "lover",
+          "count": 1625,
+          "frequency": 0.00782936324390996
+        },
+        {
+          "word": "enthusiast",
+          "count": 1599,
+          "frequency": 0.007704093432007401
+        },
+        {
+          "word": "s",
+          "count": 1545,
+          "frequency": 0.0074439176688251615
+        },
+        {
+          "word": "let",
+          "count": 1375,
+          "frequency": 0.006624845821769966
+        },
+        {
+          "word": "dog",
+          "count": 1261,
+          "frequency": 0.006075585877274129
+        },
+        {
+          "word": "into",
+          "count": 1212,
+          "frequency": 0.00583950046253469
+        },
+        {
+          "word": "coffee",
+          "count": 1189,
+          "frequency": 0.005728684859697811
+        },
+        {
+          "word": "over",
+          "count": 1108,
+          "frequency": 0.005338421214924453
+        }
+      ]
+    },
+    "grammar": {
+      "no_punctuation": {
+        "count": 0,
+        "percentage": 0.0,
+        "examples": []
+      },
+      "double_spaces": {
+        "count": 0,
+        "percentage": 0.0,
+        "examples": []
+      },
+      "double_punctuation": {
+        "count": 0,
+        "percentage": 0.0,
+        "examples": []
+      },
+      "weird_capitalization": {
+        "count": 0,
+        "percentage": 0.0,
+        "examples": []
+      },
+      "starts_lowercase": {
+        "count": 0,
+        "percentage": 0.0,
+        "examples": []
+      },
+      "missing_periods": {
+        "count": 0,
+        "percentage": 0.0,
+        "examples": []
+      }
+    },
+    "content": {
+      "null_count": 0,
+      "empty_count": 0,
+      "issues": {
+        "null_or_empty": {
+          "count": 0,
+          "percentage": 0.0,
+          "examples": []
+        },
+        "placeholder_text": {
+          "count": 0,
+          "percentage": 0.0,
+          "examples": []
+        },
+        "numeric_only": {
+          "count": 0,
+          "percentage": 0.0,
+          "examples": []
+        },
+        "special_chars_only": {
+          "count": 0,
+          "percentage": 0.0,
+          "examples": []
+        },
+        "too_repetitive": {
+          "count": 0,
+          "percentage": 0.0,
+          "examples": []
+        }
+      }
+    },
+    "semantic": {
+      "sample_size": 1000,
+      "mean_similarity": 0.2693279981613159,
+      "median_similarity": 0.2607002854347229,
+      "std_similarity": 0.11048230528831482,
+      "min_similarity": -0.12002746760845184,
+      "max_similarity": 0.9999998807907104,
+      "very_similar_pairs": 6,
+      "very_similar_examples": [
+        {
+          "bio1": "Work in medicine. City explorer. Respect is non-negotiable.",
+          "bio2": "Work in medicine. City explorer. Respect is non-negotiable.",
+          "similarity": 0.9999998807907104
+        },
+        {
+          "bio1": "Introvert seeking reading partner.",
+          "bio2": "Introvert seeking reading partner.",
+          "similarity": 0.9999995827674866
+        },
+        {
+          "bio1": "Introvert seeking reading partner.",
+          "bio2": "Introvert seeking reading partner.",
+          "similarity": 0.9999995827674866
+        },
+        {
+          "bio1": "Work in medicine. Beach person. Substance over surface.",
+          "bio2": "Work in science. Beach person. Substance over surface.",
+          "similarity": 0.9611895680427551
+        },
+        {
+          "bio1": "Artistic soul seeking filmmaking partner.",
+          "bio2": "Creative soul seeking filmmaking partner.",
+          "similarity": 0.9663487672805786
+        }
+      ]
+    }
+  },
+  "recommendations": [
+    "\u26a0\ufe0f  Increase vocabulary diversity by 10804%. Suggestion: Expand word lists in templates by 30-50% with synonyms and variations."
+  ]
+}
