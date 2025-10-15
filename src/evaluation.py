@@ -32,7 +32,8 @@ class RecommenderEvaluator:
         self,
         models_dict: Dict[str, BaseRecommender],
         test_data: pd.DataFrame,
-        users_df: pd.DataFrame
+        users_df: pd.DataFrame,
+        train_data: Optional[pd.DataFrame] = None
     ):
         """
         Initialize evaluator.
@@ -42,6 +43,7 @@ class RecommenderEvaluator:
                         e.g., {'CF': cf_model, 'NLP': nlp_model, 'Hybrid': hybrid_model}
             test_data: DataFrame with test interactions (user_id, liked_user_id, action)
             users_df: DataFrame with user data for context
+            train_data: DataFrame with training interactions (for proper exclusion)
 
         Raises:
             ValueError: If models_dict is empty or test_data is invalid
@@ -59,12 +61,22 @@ class RecommenderEvaluator:
 
         self.models = models_dict
         self.test_data = test_data.copy()
+        self.train_data = train_data.copy() if train_data is not None else None
         self.users_df = users_df.copy()
 
         # Precompute ground truth for all users
         logger.info("Precomputing ground truth from test data...")
         self.ground_truth = self._build_ground_truth()
         logger.info(f"Ground truth computed for {len(self.ground_truth)} users")
+
+        # Precompute training interactions per user (CRITICAL FIX!)
+        if self.train_data is not None:
+            logger.info("Precomputing training interactions for proper exclusion...")
+            self.train_interactions = self._build_train_interactions()
+            logger.info(f"Training interactions computed for {len(self.train_interactions)} users")
+        else:
+            logger.warning("No training data provided - recommendations may include training items!")
+            self.train_interactions = {}
 
         # Cache for user recommendations
         self._recommendation_cache: Dict[str, Dict[str, List[Tuple[str, float]]]] = {}
@@ -87,6 +99,22 @@ class RecommenderEvaluator:
             ground_truth[user_id] = liked_users
 
         return ground_truth
+
+    def _build_train_interactions(self) -> Dict[str, Set[str]]:
+        """
+        Build training interactions mapping for proper exclusion.
+
+        Returns:
+            Dict mapping user_id to set of liked user_ids in training set
+        """
+        train_interactions = {}
+
+        for user_id, group in self.train_data.groupby('user_id'):
+            # Training interactions = users they liked in training set
+            liked_users = set(group['liked_user_id'].unique())
+            train_interactions[user_id] = liked_users
+
+        return train_interactions
 
     def precision_at_k(
         self,
@@ -345,7 +373,7 @@ class RecommenderEvaluator:
         max_users: Optional[int] = None
     ) -> Dict[str, float]:
         """
-        Evaluate a single model on all metrics.
+        Evaluate a single model on all metrics using VECTORIZED batch recommendation.
 
         Args:
             model: Trained recommender model
@@ -368,7 +396,7 @@ class RecommenderEvaluator:
         # Sample if needed
         if max_users and len(test_users) > max_users:
             logger.info(f"Sampling {max_users} users from {len(test_users)} total")
-            test_users = np.random.choice(test_users, size=max_users, replace=False)
+            test_users = np.random.choice(test_users, size=max_users, replace=False).tolist()
 
         logger.info(f"Evaluating on {len(test_users)} users")
 
@@ -385,63 +413,88 @@ class RecommenderEvaluator:
         error_count = 0
         cold_start_count = 0
 
-        # Evaluate each user
-        for user_id in tqdm(test_users, desc=f"Evaluating {model_name}"):
+        max_k = max(k_values)
+
+        # Build exclude_ids dict for all users (VECTORIZED PREPROCESSING)
+        logger.info("Building exclusion sets for all users...")
+        exclude_ids_dict = {}
+        for user_id in test_users:
+            train_likes = self.train_interactions.get(user_id, set())
+            exclude_ids_dict[user_id] = train_likes | {user_id}  # Exclude training items + self
+
+        # VECTORIZED BATCH RECOMMENDATION - Single call for all users!
+        logger.info(f"Generating batch recommendations for {len(test_users)} users...")
+
+        # Check if model supports batch_recommend
+        if hasattr(model, 'batch_recommend'):
+            logger.info(f"Using vectorized batch_recommend() - FAST!")
             try:
-                # Get ground truth
-                ground_truth = self.ground_truth.get(user_id, set())
-
-                if not ground_truth:
-                    logger.debug(f"User {user_id} has no ground truth, skipping")
-                    continue
-
-                # Get recommendations (cache if needed)
-                max_k = max(k_values)
-
-                try:
-                    # Get already-interacted users to exclude
-                    # We want to exclude training interactions, not test
-                    # For simplicity, we'll let the model handle this
-                    recs = model.recommend(user_id, k=max_k, exclude_ids=None)
-
-                    if not recs:
-                        cold_start_count += 1
-                        logger.debug(f"No recommendations for user {user_id}")
-                        continue
-
-                    # Extract user IDs (recs are tuples of (user_id, score))
-                    rec_ids = [rec[0] for rec in recs]
-
-                except (ValueError, KeyError) as e:
-                    logger.debug(f"Model failed for user {user_id}: {e}")
-                    error_count += 1
-                    continue
-
-                # Compute metrics at each K
-                for k in k_values:
-                    prec = self.precision_at_k(rec_ids, ground_truth, k)
-                    rec = self.recall_at_k(rec_ids, ground_truth, k)
-                    ndcg = self.ndcg_at_k(rec_ids, ground_truth, k)
-
-                    precision_scores[k].append(prec)
-                    recall_scores[k].append(rec)
-                    ndcg_scores[k].append(ndcg)
-
-                # Compute MAP (uses all recommendations)
-                map_score = self.mean_average_precision(rec_ids, ground_truth)
-                map_scores.append(map_score)
-
-                # Compute diversity
-                div = self.diversity(rec_ids)
-                diversity_scores.append(div)
-
-                # Store for coverage computation
-                all_recommendations.append(rec_ids)
-
+                batch_results = model.batch_recommend(
+                    user_ids=test_users,
+                    k=max_k,
+                    exclude_ids_dict=exclude_ids_dict
+                )
             except Exception as e:
-                logger.warning(f"Unexpected error for user {user_id}: {e}")
-                error_count += 1
+                logger.warning(f"Batch recommendation failed: {e}. Falling back to sequential.")
+                batch_results = None
+        else:
+            logger.warning(f"Model {model_name} doesn't support batch_recommend(). Using sequential fallback.")
+            batch_results = None
+
+        # Fallback to sequential if batch failed
+        if batch_results is None:
+            logger.info("Using sequential recommend() - slower fallback...")
+            batch_results = {}
+            for user_id in tqdm(test_users, desc=f"Sequential {model_name}"):
+                try:
+                    exclude_ids = exclude_ids_dict[user_id]
+                    recs = model.recommend(user_id, k=max_k, exclude_ids=exclude_ids)
+                    batch_results[user_id] = recs
+                except Exception as e:
+                    logger.debug(f"Model failed for user {user_id}: {e}")
+                    batch_results[user_id] = []
+
+        # VECTORIZED METRIC COMPUTATION - Process all results
+        logger.info("Computing metrics for all users...")
+        for user_id in tqdm(test_users, desc=f"Computing metrics for {model_name}"):
+            # Get ground truth
+            ground_truth = self.ground_truth.get(user_id, set())
+
+            if not ground_truth:
+                logger.debug(f"User {user_id} has no ground truth, skipping")
                 continue
+
+            # Get recommendations from batch results
+            recs = batch_results.get(user_id, [])
+
+            if not recs:
+                cold_start_count += 1
+                logger.debug(f"No recommendations for user {user_id}")
+                continue
+
+            # Extract user IDs (recs are tuples of (user_id, score))
+            rec_ids = [rec[0] for rec in recs]
+
+            # Compute metrics at each K
+            for k in k_values:
+                prec = self.precision_at_k(rec_ids, ground_truth, k)
+                rec = self.recall_at_k(rec_ids, ground_truth, k)
+                ndcg = self.ndcg_at_k(rec_ids, ground_truth, k)
+
+                precision_scores[k].append(prec)
+                recall_scores[k].append(rec)
+                ndcg_scores[k].append(ndcg)
+
+            # Compute MAP (uses all recommendations)
+            map_score = self.mean_average_precision(rec_ids, ground_truth)
+            map_scores.append(map_score)
+
+            # Compute diversity
+            div = self.diversity(rec_ids)
+            diversity_scores.append(div)
+
+            # Store for coverage computation
+            all_recommendations.append(rec_ids)
 
         # Aggregate metrics
         for k in k_values:

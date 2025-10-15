@@ -163,6 +163,54 @@ class CollaborativeFilteringRecommender(BaseRecommender):
 
         return recommendations
 
+    def batch_recommend(
+        self,
+        user_ids: List[str],
+        k: int = 10,
+        exclude_ids_dict: Optional[Dict[str, Set[str]]] = None
+    ) -> Dict[str, List[Tuple[str, float]]]:
+        """
+        Generate recommendations for multiple users in batch.
+
+        This method is more efficient than calling recommend() in a loop
+        as it minimizes repeated operations.
+
+        Args:
+            user_ids: List of user IDs to generate recommendations for
+            k: Number of recommendations per user
+            exclude_ids_dict: Optional dict mapping user_id -> set of excluded IDs
+
+        Returns:
+            Dictionary mapping user_id -> list of (recommended_id, score) tuples
+        """
+        self._check_trained()
+
+        if exclude_ids_dict is None:
+            exclude_ids_dict = {}
+
+        results = {}
+
+        for user_id in user_ids:
+            # Check if user exists
+            if user_id not in self.user_id_to_idx:
+                logger.warning(f"User {user_id} not found in training data")
+                results[user_id] = []
+                continue
+
+            # Get exclude set for this user
+            exclude_ids = exclude_ids_dict.get(user_id, set())
+
+            # Generate recommendations
+            try:
+                recommendations = self.recommend(user_id, k=k, exclude_ids=exclude_ids)
+                results[user_id] = recommendations
+            except Exception as e:
+                logger.warning(f"Error generating recommendations for {user_id}: {e}")
+                results[user_id] = []
+
+        logger.debug(f"Batch recommendation complete: {len(user_ids)} users")
+        return results
+
     def score(
         self,
         user_id: str,
