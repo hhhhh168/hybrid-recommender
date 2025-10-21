@@ -222,3 +222,4 @@ results/
 .DS_Store
 data/raw/*.csv
 data/processed/
+evaluation_results.log
