@@ -2,6 +2,15 @@
 
 A hybrid recommendation system for a dating app for white-collar professionals. This system combines collaborative filtering and natural language processing to generate personalized match recommendations.
 
+## 🚀 Modern Tooling
+
+This project uses modern development tools for faster workflows:
+- **[Just](https://just.systems)** - Command runner (like Make, but better)
+- **[UV](https://docs.astral.sh/uv/)** - Lightning-fast Python package manager (10-100x faster than pip)
+- **[Commitizen](https://commitizen-tools.github.io/commitizen/)** - Conventional commits and automated versioning
+
+📖 **See [TOOLING.md](TOOLING.md) for detailed installation and usage guide.**
+
 ## Overview
 
 This project implements a production-ready recommendation engine that:
@@ -48,31 +57,82 @@ hybrid-recommender/
 
 ## Setup
 
-### 1. Clone the repository
+### Prerequisites
+
+Install modern tooling:
 ```bash
+# Install Just (command runner)
+brew install just  # macOS
+# or: curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash
+
+# Install UV (fast Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### Quick Setup (Recommended)
+
+```bash
+# 1. Clone the repository
 git clone <repository-url>
 cd hybrid-recommender
+
+# 2. Setup virtual environment and install dependencies
+just setup
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+just install-dev
+
+# 3. View available commands
+just
 ```
 
-### 2. Create virtual environment
+### Traditional Setup (Alternative)
+
 ```bash
+# 1. Clone the repository
+git clone <repository-url>
+cd hybrid-recommender
+
+# 2. Create virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
 
-### 3. Install dependencies
-```bash
+# 3. Install dependencies
 pip install -r requirements.txt
-```
 
-### 4. Verify setup
-```bash
+# 4. Verify setup
 python -c "from src.utils import Config; print(Config())"
 ```
 
 ## Usage
 
-_(To be added: Instructions for data generation, model training, and generating recommendations)_
+### Using Just (Recommended)
+
+```bash
+# View all available commands
+just
+
+# Common workflows
+just generate-data      # Generate synthetic data
+just eval-quick         # Run evaluation (1k users)
+just eval-full          # Run evaluation (20k users)
+just test              # Run tests
+just clean             # Clean generated files
+just dev-cycle         # Clean → Generate → Eval
+```
+
+### Manual Commands
+
+```bash
+# Generate data
+python src/data_generator.py
+
+# Run evaluation
+python evaluate_1k_users.py
+python evaluate_20k_users.py
+
+# Run tests
+pytest tests/
+```
 
 ## Architecture
 
@@ -245,11 +305,27 @@ python scripts/evaluate_all_models.py --max_users 500
 
 ## Development
 
-See [PROJECT_GUIDELINES.md](PROJECT_GUIDELINES) for detailed development guidelines including:
-- Code style requirements
-- Firestore schema reference
-- Commit conventions
-- Testing guidelines
+### Making Commits
+
+This project uses **Commitizen** for conventional commits:
+
+```bash
+# Stage your changes
+git add .
+
+# Create a conventional commit (interactive prompt)
+just commit
+# or: cz commit
+
+# Push changes
+git push
+```
+
+### Available Documentation
+
+- **[TOOLING.md](TOOLING.md)** - Modern tooling guide (Just, UV, Commitizen)
+- **[PROJECT_GUIDELINES.md](PROJECT_GUIDELINES.md)** - Development guidelines, code style, testing
+- **[justfile](justfile)** - All available commands and workflows
 
 ## License
 
