@@ -109,7 +109,7 @@ def main():
     print("="*70)
 
     print("\nThe problem is:")
-    print("  ❌ We're excluding TRAINING interactions")
+    print("  We're excluding TRAINING interactions")
     print("  ✓ We should exclude ALL HISTORICAL interactions (train + test)")
     print("")
     print("Why this breaks evaluation:")

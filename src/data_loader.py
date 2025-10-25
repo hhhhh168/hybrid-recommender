@@ -1,5 +1,5 @@
 """
-Data loader module for WorkHeart recommendation system.
+Data loader module for the recommendation system.
 
 This module handles loading and validating CSV data from the raw data directory.
 """
@@ -19,7 +19,7 @@ logger = setup_logger(__name__)
 
 class DataLoader:
     """
-    Load and validate WorkHeart dating app data from CSV files.
+    Load and validate dating app data from CSV files.
 
     This class handles loading users, likes, and matches data from raw CSV files,
     performs validation, and provides data summary statistics.
@@ -345,9 +345,9 @@ class DataLoader:
             all_valid = False
 
         if all_valid:
-            logger.info("✓ All validation checks passed")
+            logger.info("All validation checks passed")
         else:
-            logger.warning("✗ Some validation checks failed")
+            logger.warning("Some validation checks failed")
 
         return all_valid
 

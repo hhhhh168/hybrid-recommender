@@ -102,7 +102,7 @@ def main():
     print_section('5. Detailed Analysis', char='-')
 
     # Segment breakdown
-    print("\n📊 Performance by User Segment:")
+    print("\nPerformance by User Segment:")
     print("-" * 70)
 
     per_user = results['per_user_metrics']
@@ -128,7 +128,7 @@ def main():
               f"{avg_precision:<15.4f} {avg_recall:<15.4f} {avg_ndcg:<15.4f}")
 
     # Performance projection
-    print("\n\n📈 Performance Projection:")
+    print("\n\nPerformance Projection:")
     print("-" * 70)
 
     timing = results['timing']
@@ -148,7 +148,7 @@ def main():
     print(f"  • Speedup: {speedup_vs_sequential:.1f}x faster")
 
     # Key insights
-    print("\n\n💡 Key Insights:")
+    print("\n\nKey Insights:")
     print("-" * 70)
 
     metrics_10 = results['metrics'][10]
