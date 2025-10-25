@@ -25,7 +25,7 @@ test-coverage:
 
 # Generate synthetic data for the recommender system
 generate-data:
-    python src/data_generator.py
+    python data/generate_data.py
 
 # Run full evaluation on all models (1k users for quick testing)
 eval-quick:

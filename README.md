@@ -37,21 +37,37 @@ This project implements a production-ready recommendation engine that:
 hybrid-recommender/
 ├── data/
 │   ├── raw/              # Raw CSV/JSON data (gitignored)
-│   └── processed/        # Preprocessed datasets
+│   ├── processed/        # Preprocessed datasets
+│   └── generate_data.py  # Synthetic data generation with temporal consistency
 ├── src/
 │   ├── __init__.py
 │   ├── utils.py          # Config and logging utilities
-│   ├── data_generator.py # (To be added)
-│   ├── collaborative.py  # (To be added)
-│   ├── nlp.py           # (To be added)
-│   └── hybrid.py        # (To be added)
+│   ├── data_loader.py    # Data loading and preprocessing
+│   ├── preprocessing.py  # Feature engineering and data transformation
+│   ├── evaluation.py     # Evaluation metrics and utilities
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── base_recommender.py      # Abstract base class for all models
+│   │   ├── cf_recommender.py        # Collaborative filtering model
+│   │   ├── nlp_recommender.py       # NLP-based content model
+│   │   └── hybrid_recommender.py    # Hybrid model combining CF + NLP
+│   └── evaluation/       # Evaluation modules
+├── scripts/
+│   ├── evaluate_all_models.py  # Comprehensive model comparison
+│   └── evaluate_by_segment.py  # Segment-specific evaluation
+├── diagnostics/          # Diagnostic and debugging tools
 ├── notebooks/            # Jupyter notebooks for EDA
-├── tests/               # Unit tests
+├── tests/                # Unit tests
 ├── results/
-│   ├── models/          # Saved models (gitignored)
-│   └── metrics/         # Evaluation metrics (gitignored)
-├── requirements.txt
-├── CLAUDE.md           # Development guidelines
+│   ├── models/           # Saved models (gitignored)
+│   └── metrics/          # Evaluation metrics (gitignored)
+├── evaluate_1k_users.py  # Quick evaluation script
+├── evaluate_20k_users.py # Full-scale evaluation script
+├── justfile              # Just command runner recipes
+├── pyproject.toml        # Project metadata and tool configuration
+├── requirements.txt      # Python dependencies
+├── TOOLING.md            # Modern tooling guide
+├── PROJECT_GUIDELINES.md # Development guidelines
 └── README.md
 ```
 
@@ -124,11 +140,12 @@ just dev-cycle         # Clean → Generate → Eval
 
 ```bash
 # Generate data
-python src/data_generator.py
+python data/generate_data.py
 
 # Run evaluation
 python evaluate_1k_users.py
 python evaluate_20k_users.py
+python scripts/evaluate_all_models.py
 
 # Run tests
 pytest tests/
@@ -136,7 +153,62 @@ pytest tests/
 
 ## Architecture
 
-_(To be added: System architecture diagram and component descriptions)_
+### System Components
+
+The hybrid recommender system consists of three main recommendation models:
+
+#### 1. **Collaborative Filtering (CF) Model**
+- **Location**: `src/models/cf_recommender.py`
+- **Approach**: User-user and item-item collaborative filtering using sparse matrix operations
+- **Features**:
+  - Cosine similarity for user/item relationships
+  - Efficient sparse matrix computations with SciPy
+  - Handles cold-start with fallback strategies
+- **Best for**: Finding users with similar interaction patterns
+
+#### 2. **NLP Content Model**
+- **Location**: `src/models/nlp_recommender.py`
+- **Approach**: Semantic similarity using sentence transformers
+- **Features**:
+  - Text embeddings from profile bios, job titles, education
+  - Pre-trained transformer models (sentence-transformers)
+  - Content-based filtering for new users
+- **Best for**: Matching based on profile content and interests
+
+#### 3. **Hybrid Model**
+- **Location**: `src/models/hybrid_recommender.py`
+- **Approach**: Weighted combination of CF and NLP signals
+- **Features**:
+  - Configurable weights for CF vs NLP scores
+  - Combines behavioral and content signals
+  - Best overall performance (see evaluation results)
+- **Best for**: Production recommendations with balanced signals
+
+### Data Flow
+
+```
+1. Data Generation (data/generate_data.py)
+   ↓
+2. Data Loading (src/data_loader.py)
+   ↓
+3. Preprocessing (src/preprocessing.py)
+   ↓
+4. Model Training
+   ├── CF Model (collaborative filtering)
+   ├── NLP Model (content-based)
+   └── Hybrid Model (combined)
+   ↓
+5. Recommendation Generation
+   ↓
+6. Evaluation (src/evaluation.py)
+```
+
+### Key Features
+
+- **Temporal Consistency**: Data generation respects chronological ordering for realistic train/test splits
+- **Scalability**: Vectorized operations and sparse matrices for efficient computation
+- **Reproducibility**: Fixed random seeds and comprehensive logging
+- **Comprehensive Metrics**: Precision@K, Recall@K, NDCG@K, MAP, Coverage, Diversity
 
 ## Running Evaluation
 
