@@ -1,5 +1,5 @@
 """
-Utility functions and configuration for WorkHeart recommendation system.
+Utility functions and configuration for the recommendation system.
 """
 
 import logging
@@ -8,7 +8,7 @@ from typing import Optional
 
 
 def setup_logger(
-    name: str = "workheart",
+    name: str = "recommender",
     level: int = logging.INFO,
     log_file: Optional[str] = None
 ) -> logging.Logger:

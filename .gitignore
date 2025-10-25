@@ -206,7 +206,7 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# WorkHeart Project Specific
+# Project Specific
 # Data files (CSV and JSON)
 data/raw/*.csv
 data/raw/*.json

@@ -1,5 +1,5 @@
 """
-Data preprocessing module for WorkHeart recommendation system.
+Data preprocessing module for the recommendation system.
 
 This module handles feature engineering, train-test splits, and data transformations
 for the hybrid recommendation system.
