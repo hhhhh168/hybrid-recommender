@@ -286,7 +286,7 @@ def test_bio_diversity(n_samples=100):
     print(f"   Total bios: {n_samples}")
     print(f"   Unique bios: {unique_bios}")
     print(f"   Uniqueness ratio: {uniqueness_ratio:.1%}")
-    print(f"   Status: {'✅ EXCELLENT' if uniqueness_ratio >= 0.95 else '⚠️  NEEDS IMPROVEMENT'}")
+    print(f"   Status: {'EXCELLENT' if uniqueness_ratio >= 0.95 else 'NEEDS IMPROVEMENT'}")
 
     # Vocabulary
     all_words = []
@@ -302,7 +302,7 @@ def test_bio_diversity(n_samples=100):
     print(f"   Total words: {total_words}")
     print(f"   Unique words: {unique_words}")
     print(f"   Unique ratio: {vocab_ratio:.1%}")
-    print(f"   Status: {'✅ GOOD' if unique_words >= 200 else '⚠️  LOW'}")
+    print(f"   Status: {'GOOD' if unique_words >= 200 else 'LOW'}")
 
     # Length distribution
     lengths = [len(bio) for bio in bios]
@@ -314,7 +314,7 @@ def test_bio_diversity(n_samples=100):
     print(f"   Min: {min_length} chars")
     print(f"   Max: {max_length} chars")
     print(f"   Average: {avg_length:.1f} chars")
-    print(f"   Status: {'✅ GOOD' if 50 <= avg_length <= 200 else '⚠️  OUT OF RANGE'}")
+    print(f"   Status: {'GOOD' if 50 <= avg_length <= 200 else 'OUT OF RANGE'}")
 
     # Grammar check
     grammar_issues = 0
@@ -326,7 +326,7 @@ def test_bio_diversity(n_samples=100):
     print(f"\n4. GRAMMAR:")
     print(f"   Double punctuation issues: {grammar_issues}")
     print(f"   Error rate: {grammar_issues/n_samples:.1%}")
-    print(f"   Status: {'✅ CLEAN' if grammar_issues == 0 else '⚠️  HAS ISSUES'}")
+    print(f"   Status: {'CLEAN' if grammar_issues == 0 else 'HAS ISSUES'}")
 
     # Theoretical max combinations
     print(f"\n5. THEORETICAL MAXIMUM:")
@@ -368,9 +368,9 @@ def test_bio_diversity(n_samples=100):
 
     print(f"Score: {score}/100")
     if score >= 90:
-        print("Grade: A (Excellent) ✅")
+        print("Grade: A (Excellent)")
     elif score >= 80:
-        print("Grade: B (Good) ✅")
+        print("Grade: B (Good)")
     elif score >= 70:
         print("Grade: C (Fair)")
     else:

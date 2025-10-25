@@ -3,25 +3,25 @@
 ## Analysis of Redundant Scripts
 
 ### Diagnostic Scripts (Keep Useful Ones)
-- **diagnose_eval.py** (5.7K) - ✅ **KEEP** - Useful for debugging evaluation logic
-- **diagnose_model_quality.py** (4.5K) - ✅ **KEEP** - Useful for checking model predictions
-- **test_vectorized_eval.py** (3.0K) - ❌ **REMOVE** - Superseded by evaluate_1k_users.py
+- **diagnose_eval.py** (5.7K) - **KEEP** - Useful for debugging evaluation logic
+- **diagnose_model_quality.py** (4.5K) - **KEEP** - Useful for checking model predictions
+- **test_vectorized_eval.py** (3.0K) - **REMOVE** - Superseded by evaluate_1k_users.py
 
 ### Evaluation Scripts (Consolidate)
-- **scripts/evaluate_all_models.py** - ✅ **KEEP** - Main comprehensive evaluation
-- **evaluate_1k_users.py** (7.7K) - ✅ **KEEP** - Quick evaluation with batching
-- **evaluate_by_segment.py** (7.3K) - ⚠️ **REVIEW** - May be redundant
-- **evaluate_with_new_data.py** (4.2K) - ❌ **REMOVE** - Redundant
-- **manual_eval.py** (11K) - ❌ **REMOVE** - Old/ad-hoc testing
+- **scripts/evaluate_all_models.py** - **KEEP** - Main comprehensive evaluation
+- **evaluate_1k_users.py** (7.7K) - **KEEP** - Quick evaluation with batching
+- **evaluate_by_segment.py** (7.3K) - **REVIEW** - May be redundant
+- **evaluate_with_new_data.py** (4.2K) - **REMOVE** - Redundant
+- **manual_eval.py** (11K) - **REMOVE** - Old/ad-hoc testing
 
 ### Test Scripts (Cleanup Old Tests)
-- **test_batch_evaluator.py** (5.3K) - ❌ **REMOVE** - Testing old code
-- **test_batch_methods.py** (3.0K) - ❌ **REMOVE** - Testing old code
-- **test_bio_diversity.py** (18K) - ⚠️ **ARCHIVE** - Data quality check, move to scripts/
-- **test_cf_model.py** (4.9K) - ⚠️ **MOVE TO tests/** - Unit test
-- **test_models.py** (8.4K) - ⚠️ **MOVE TO tests/** - Unit test
-- **test_pipeline.py** (4.5K) - ⚠️ **MOVE TO tests/** - Unit test
-- **test_reciprocal_generation.py** (2.7K) - ❌ **REMOVE** - Old data generation test
+- **test_batch_evaluator.py** (5.3K) - **REMOVE** - Testing old code
+- **test_batch_methods.py** (3.0K) - **REMOVE** - Testing old code
+- **test_bio_diversity.py** (18K) - **ARCHIVE** - Data quality check, move to scripts/
+- **test_cf_model.py** (4.9K) - **MOVE TO tests/** - Unit test
+- **test_models.py** (8.4K) - **MOVE TO tests/** - Unit test
+- **test_pipeline.py** (4.5K) - **MOVE TO tests/** - Unit test
+- **test_reciprocal_generation.py** (2.7K) - **REMOVE** - Old data generation test
 
 ## Recommended Structure
 

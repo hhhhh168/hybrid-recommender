@@ -31,7 +31,7 @@ try:
     from sklearn.metrics.pairwise import cosine_similarity
     SEMANTIC_AVAILABLE = True
 except (ImportError, ModuleNotFoundError) as e:
-    print(f"⚠️  Semantic diversity check disabled (missing dependencies: {e})")
+    print(f"WARNING: Semantic diversity check disabled (missing dependencies: {e})")
     SEMANTIC_AVAILABLE = False
     SentenceTransformer = None
     cosine_similarity = None
@@ -131,7 +131,7 @@ class BioValidator:
         print(f"  Bios shared by >{self.DUPLICATE_THRESHOLD} users: {len(high_freq_bios)}")
 
         if high_freq_bios:
-            print(f"  ⚠️  WARNING: {len(high_freq_bios)} bios used by >{self.DUPLICATE_THRESHOLD} users")
+            print(f"  WARNING: {len(high_freq_bios)} bios used by >{self.DUPLICATE_THRESHOLD} users")
 
         return results
 
@@ -172,10 +172,10 @@ class BioValidator:
         print(f"  Word count: mean={results['mean_words']:.1f}, median={results['median_words']:.0f}")
 
         if too_short:
-            print(f"  ⚠️  WARNING: {len(too_short)} bios shorter than {self.MIN_LENGTH} chars")
+            print(f"  WARNING: {len(too_short)} bios shorter than {self.MIN_LENGTH} chars")
 
         if too_long:
-            print(f"  ⚠️  WARNING: {len(too_long)} bios longer than {self.MAX_LENGTH} chars")
+            print(f"  WARNING: {len(too_long)} bios longer than {self.MAX_LENGTH} chars")
 
         return results
 
@@ -228,7 +228,7 @@ class BioValidator:
         print(f"  Hapax legomena: {len(hapax):,} ({results['hapax_ratio']:.2%})")
 
         if results['unique_ratio'] < self.TARGET_UNIQUE_RATIO:
-            print(f"  ⚠️  WARNING: Vocabulary diversity below target "
+            print(f"  WARNING: Vocabulary diversity below target "
                   f"({results['unique_ratio']:.2%} < {self.TARGET_UNIQUE_RATIO:.0%})")
 
         return results
@@ -364,7 +364,7 @@ class BioValidator:
             if data['count'] > 0:
                 print(f"  {issue_type}: {data['count']} ({data['percentage']:.1f}%)")
                 if data['count'] > 0:
-                    print(f"    ⚠️  WARNING: Found {issue_type} issues")
+                    print(f"    WARNING: Found {issue_type} issues")
 
         return results
 
@@ -379,7 +379,7 @@ class BioValidator:
 
         # Skip if dependencies not available
         if not SEMANTIC_AVAILABLE:
-            print("  ⚠️  Skipping semantic diversity check (dependencies not installed)")
+            print("  WARNING: Skipping semantic diversity check (dependencies not installed)")
             return {
                 'sample_size': 0,
                 'mean_similarity': 0.0,
@@ -439,7 +439,7 @@ class BioValidator:
               f"{results['very_similar_pairs']}")
 
         if results['mean_similarity'] > 0.8:
-            print(f"  ⚠️  WARNING: High average similarity ({results['mean_similarity']:.3f}) "
+            print(f"  WARNING: High average similarity ({results['mean_similarity']:.3f}) "
                   f"indicates low semantic diversity")
 
         return results
@@ -519,12 +519,12 @@ class BioValidator:
         if unique_ratio < 0.7:
             needed = int((0.7 - unique_ratio) * len(self.bios))
             recommendations.append(
-                f"⚠️  CRITICAL: Add {needed:,} more unique bio variations to reach 70% uniqueness. "
+                f"CRITICAL: Add {needed:,} more unique bio variations to reach 70% uniqueness. "
                 f"Suggestion: Create 3-5 new template categories with 50+ variations each."
             )
         elif unique_ratio < 0.85:
             recommendations.append(
-                f"ℹ️  Improve uniqueness from {unique_ratio:.1%} to 85%+. "
+                f"INFO: Improve uniqueness from {unique_ratio:.1%} to 85%+. "
                 f"Suggestion: Add 2-3 more template variations or increase randomization."
             )
 
@@ -532,7 +532,7 @@ class BioValidator:
         length_stats = self.validation_results['length']
         if length_stats['too_short_count'] > 0:
             recommendations.append(
-                f"⚠️  Fix {length_stats['too_short_count']} bios shorter than {self.MIN_LENGTH} chars. "
+                f"WARNING: Fix {length_stats['too_short_count']} bios shorter than {self.MIN_LENGTH} chars. "
                 f"Suggestion: Ensure all templates generate at least 2-3 sentences."
             )
 
@@ -541,7 +541,7 @@ class BioValidator:
         if vocab_ratio < self.TARGET_UNIQUE_RATIO:
             improvement_needed = int((self.TARGET_UNIQUE_RATIO - vocab_ratio) / vocab_ratio * 100)
             recommendations.append(
-                f"⚠️  Increase vocabulary diversity by {improvement_needed}%. "
+                f"WARNING: Increase vocabulary diversity by {improvement_needed}%. "
                 f"Suggestion: Expand word lists in templates by 30-50% with synonyms and variations."
             )
 
@@ -550,7 +550,7 @@ class BioValidator:
         for issue_type, data in grammar.items():
             if data['count'] > len(self.bios) * 0.05:  # More than 5% affected
                 recommendations.append(
-                    f"⚠️  Fix {issue_type}: {data['count']} bios ({data['percentage']:.1f}%). "
+                    f"WARNING: Fix {issue_type}: {data['count']} bios ({data['percentage']:.1f}%). "
                     f"Suggestion: Review and fix template formatting."
                 )
 
@@ -559,7 +559,7 @@ class BioValidator:
         for issue_type, data in content['issues'].items():
             if data['count'] > 0:
                 recommendations.append(
-                    f"⚠️  Remove {issue_type}: {data['count']} bios. "
+                    f"WARNING: Remove {issue_type}: {data['count']} bios. "
                     f"Suggestion: Add validation checks in generation code."
                 )
 
@@ -567,7 +567,7 @@ class BioValidator:
         semantic = self.validation_results['semantic']
         if not semantic.get('skipped', False) and semantic['mean_similarity'] > 0.8:
             recommendations.append(
-                f"ℹ️  Increase semantic diversity (current similarity: {semantic['mean_similarity']:.3f}). "
+                f"INFO: Increase semantic diversity (current similarity: {semantic['mean_similarity']:.3f}). "
                 f"Suggestion: Create more template categories with distinct themes."
             )
 
@@ -575,14 +575,14 @@ class BioValidator:
         high_freq = self.validation_results['duplicates']['high_frequency_count']
         if high_freq > 0:
             recommendations.append(
-                f"⚠️  CRITICAL: {high_freq} bios are used by >{self.DUPLICATE_THRESHOLD} users. "
+                f"CRITICAL: {high_freq} bios are used by >{self.DUPLICATE_THRESHOLD} users. "
                 f"Suggestion: These specific bios need immediate attention - add variations."
             )
 
         # Overall
         if not recommendations:
             recommendations.append(
-                "✅ EXCELLENT: Bio quality meets all standards! No improvements needed."
+                "EXCELLENT: Bio quality meets all standards! No improvements needed."
             )
 
         return recommendations
