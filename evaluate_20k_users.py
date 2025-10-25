@@ -251,7 +251,7 @@ def main():
     print(f"✓ Batch processing: {results['timing']['used_batch_recommend']}")
 
     print("\n" + "="*70)
-    print("Evaluation complete! 🎉".center(70))
+    print("Evaluation complete!".center(70))
     print("="*70 + "\n")
 
 

@@ -13,7 +13,7 @@ class BaseRecommender(ABC):
     """
     Abstract base class for all recommendation models.
 
-    All recommender systems in the WorkHeart app must inherit from this class
+    All recommender systems must inherit from this class
     and implement the required methods for training, recommendation, and scoring.
     """
 

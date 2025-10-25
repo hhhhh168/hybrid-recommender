@@ -1,5 +1,5 @@
 """
-Generate realistic synthetic data for WorkHeart dating app recommendation system.
+Generate realistic synthetic data for dating app recommendation system.
 
 This script generates:
 - 20,000 users (white-collar professionals, ages 25-45)
@@ -853,10 +853,10 @@ def generate_ultra_concentrated_likes(users_df, target_likes=2000000, seed=42):
                 incoming_likes[target_id] = []
             incoming_likes[target_id].append((user_id, like_time.isoformat(), action))
 
-    print(f"\n✅ Pass 1 Complete: Generated {len(likes_data):,} initial likes")
-    print(f"✓ Average likes per user: {len(likes_data) / len(users_df):.1f}")
-    print(f"✓ Users with incoming likes: {len(incoming_likes):,}")
-    print(f"✓ Avg incoming likes per user with likes: {np.mean([len(v) for v in incoming_likes.values()]):.1f}")
+    print(f"\nPass 1 Complete: Generated {len(likes_data):,} initial likes")
+    print(f"Average likes per user: {len(likes_data) / len(users_df):.1f}")
+    print(f"Users with incoming likes: {len(incoming_likes):,}")
+    print(f"Avg incoming likes per user with likes: {np.mean([len(v) for v in incoming_likes.values()]):.1f}")
 
     # Layer 5: PASS 2 - Generate reciprocal likes (high probability of liking back)
     print("\n[5/6] PASS 2: Generating reciprocal likes (liking back)...")
@@ -958,8 +958,8 @@ def generate_ultra_concentrated_likes(users_df, target_likes=2000000, seed=42):
 
                 reciprocal_likes_count += 1
 
-    print(f"\n✅ Pass 2 Complete: Generated {reciprocal_likes_count:,} reciprocal likes")
-    print(f"✓ Reciprocal rate: {reciprocal_likes_count / len(likes_data) * 100:.1f}% of initial likes")
+    print(f"\nPass 2 Complete: Generated {reciprocal_likes_count:,} reciprocal likes")
+    print(f"Reciprocal rate: {reciprocal_likes_count / len(likes_data) * 100:.1f}% of initial likes")
 
     # Convert all likes to DataFrame
     likes_df = pd.DataFrame(likes_data)
@@ -967,12 +967,12 @@ def generate_ultra_concentrated_likes(users_df, target_likes=2000000, seed=42):
     print(f"\n{'='*80}")
     print(f"TOTAL LIKES GENERATED")
     print(f"{'='*80}")
-    print(f"✅ Total likes: {len(likes_df):,}")
-    print(f"✓ Average likes per user: {len(likes_df) / len(users_df):.1f}")
-    print(f"✓ Superlike rate: {(likes_df['action'] == 'superlike').sum() / len(likes_df) * 100:.1f}%")
+    print(f"Total likes: {len(likes_df):,}")
+    print(f"Average likes per user: {len(likes_df) / len(users_df):.1f}")
+    print(f"Superlike rate: {(likes_df['action'] == 'superlike').sum() / len(likes_df) * 100:.1f}%")
 
     # Calculate and display overlap statistics
-    print(f"\n📊 Collaborative Filtering Signal Analysis:")
+    print(f"\nCollaborative Filtering Signal Analysis:")
     sample_users = np.random.choice(users_df['user_id'].values, size=min(100, len(users_df)), replace=False)
     user_likes_dict = likes_df[likes_df['user_id'].isin(sample_users)].groupby('user_id')['liked_user_id'].apply(set).to_dict()
 
@@ -989,15 +989,15 @@ def generate_ultra_concentrated_likes(users_df, target_likes=2000000, seed=42):
 
         if overlap_scores:
             avg_overlap = np.mean(overlap_scores)
-            print(f"✓ Average user overlap (Jaccard): {avg_overlap:.1%}")
+            print(f"Average user overlap (Jaccard): {avg_overlap:.1%}")
             if avg_overlap >= 0.20:
-                print(f"  ✅ EXCELLENT! Strong CF signal (target: ≥20%)")
+                print(f"  EXCELLENT! Strong CF signal (target: >=20%)")
             elif avg_overlap >= 0.15:
-                print(f"  ✓ GOOD! Moderate CF signal (target: ≥20%)")
+                print(f"  GOOD! Moderate CF signal (target: >=20%)")
             elif avg_overlap >= 0.10:
-                print(f"  ⚠️  FAIR. Weak CF signal (target: ≥20%)")
+                print(f"  FAIR. Weak CF signal (target: >=20%)")
             else:
-                print(f"  ❌ POOR. Very weak CF signal (target: ≥20%)")
+                print(f"  POOR. Very weak CF signal (target: >=20%)")
 
     # Layer 6: Analyze reciprocal patterns
     print(f"\n{'='*80}")
@@ -1049,19 +1049,19 @@ def generate_ultra_concentrated_likes(users_df, target_likes=2000000, seed=42):
 
     if overlap_scores:
         avg_overlap = np.mean(overlap_scores)
-        print(f"✓ Average train/test overlap: {avg_overlap:.1%}")
-        print(f"✓ Min overlap: {np.min(overlap_scores):.1%}")
-        print(f"✓ Max overlap: {np.max(overlap_scores):.1%}")
-        print(f"✓ Median overlap: {np.median(overlap_scores):.1%}")
+        print(f"Average train/test overlap: {avg_overlap:.1%}")
+        print(f"Min overlap: {np.min(overlap_scores):.1%}")
+        print(f"Max overlap: {np.max(overlap_scores):.1%}")
+        print(f"Median overlap: {np.median(overlap_scores):.1%}")
 
         if avg_overlap >= 0.30:
-            print(f"  ✅ EXCELLENT! Strong temporal consistency (target: ≥30%)")
+            print(f"  EXCELLENT! Strong temporal consistency (target: >=30%)")
         elif avg_overlap >= 0.20:
-            print(f"  ✓ GOOD! Moderate temporal consistency (target: ≥30%)")
+            print(f"  GOOD! Moderate temporal consistency (target: >=30%)")
         elif avg_overlap >= 0.10:
-            print(f"  ⚠️  FAIR. Weak temporal consistency (target: ≥30%)")
+            print(f"  FAIR. Weak temporal consistency (target: >=30%)")
         else:
-            print(f"  ❌ POOR. Very weak temporal consistency (target: ≥30%)")
+            print(f"  POOR. Very weak temporal consistency (target: >=30%)")
 
     # Layer 7: Generate matches from mutual likes
     print(f"\n{'='*80}")
@@ -1151,9 +1151,9 @@ def generate_enhanced_likes(users_df, target_likes=2400000, seed=42):
     See generate_ultra_concentrated_likes() for the improved version
     that achieves 20-35% overlap.
     """
-    print("\n⚠️  WARNING: Using deprecated generate_enhanced_likes()")
-    print("⚠️  This produces weak CF signals (0.5% overlap)")
-    print("⚠️  Use generate_ultra_concentrated_likes() instead for 20-35% overlap\n")
+    print("\nWARNING: Using deprecated generate_enhanced_likes()")
+    print("This produces weak CF signals (0.5% overlap)")
+    print("Use generate_ultra_concentrated_likes() instead for 20-35% overlap\n")
     return generate_ultra_concentrated_likes(users_df, target_likes, seed)
 
 
@@ -1360,19 +1360,19 @@ def main():
 
     # Save files
     users_export.to_csv('data/raw/users.csv', index=False, encoding='utf-8')
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Saved data/raw/users.csv")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] Saved data/raw/users.csv")
 
     likes_export = likes_df.copy()
     if 'timestamp_dt' in likes_export.columns:
         likes_export = likes_export.drop('timestamp_dt', axis=1)
 
     likes_export.to_csv('data/raw/likes.csv', index=False, encoding='utf-8')
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Saved data/raw/likes.csv")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] Saved data/raw/likes.csv")
 
     matches_df.to_csv('data/raw/matches.csv', index=False, encoding='utf-8')
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Saved data/raw/matches.csv")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] Saved data/raw/matches.csv")
 
-    print(f"\n[{datetime.now().strftime('%H:%M:%S')}] Data generation complete! 🎉\n")
+    print(f"\n[{datetime.now().strftime('%H:%M:%S')}] Data generation complete!\n")
 
 
 if __name__ == "__main__":

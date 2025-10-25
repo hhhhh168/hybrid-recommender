@@ -1,8 +1,8 @@
-# WorkHeart Hybrid Recommender System - Development Guidelines
+# Hybrid Recommender System - Development Guidelines
 
 ## Project Context
 
-**WorkHeart** is a dating app for white-collar professionals. This project implements a hybrid recommendation system that combines:
+This is a dating app for white-collar professionals. This project implements a hybrid recommendation system that combines:
 - Collaborative filtering (user behavior patterns)
 - Natural Language Processing (profile text analysis)
 
@@ -40,7 +40,7 @@ def calculate_similarity(
 
 ## Firestore Schema Fields
 
-The WorkHeart app uses Firestore with the following user profile schema:
+The app uses Firestore with the following user profile schema:
 
 ### Core Profile Fields:
 - `uid` (string): Unique user identifier
@@ -103,12 +103,12 @@ test(recommender): add unit tests for hybrid scoring
 
 ## Important Reminders
 
-### ❌ Do NOT Use:
+### Do NOT Use:
 - `localStorage` - This is a Python/ML project, not a web frontend
 - Hardcoded file paths - Use the `Config` class from `src/utils.py`
 - Magic numbers - Define constants at module level or in config
 
-### ✅ Do Use:
+### Do Use:
 - Relative imports within the `src/` package
 - The logger from `src/utils.py` for debugging
 - Type hints and dataclasses for data structures

@@ -1,5 +1,5 @@
 """
-Recommendation models for WorkHeart dating app.
+Recommendation models for dating app.
 
 This package contains various recommendation algorithms including:
 - Collaborative filtering (user-user similarity)

@@ -77,7 +77,7 @@ def main():
     print("="*70)
 
     if hits_in_test_2 == 0:
-        print("\n❌ PROBLEM FOUND: Model can't predict ANY test likes!")
+        print("\nPROBLEM FOUND: Model can't predict ANY test likes!")
         print("   This means the model has NO predictive power.")
         print("")
         print("   Possible causes:")
@@ -86,7 +86,7 @@ def main():
         print("   3. Ground truth labels are noisy/unreliable")
         print("")
     elif hits_in_test_2 < 2:
-        print("\n⚠️  Model has VERY WEAK predictive power")
+        print("\nModel has VERY WEAK predictive power")
         print(f"   Only {hits_in_test_2}/20 hits in top-20")
         print(f"   Precision@20: {hits_in_test_2/20:.1%}")
         print("")
@@ -106,7 +106,7 @@ def main():
     print(f"   NOT in candidate pool: {len(test_not_in_pool)}")
 
     if len(test_not_in_pool) > 0:
-        print("\n❌ MAJOR PROBLEM: Some test users don't exist in the pool!")
+        print("\nMAJOR PROBLEM: Some test users don't exist in the pool!")
         print("   This indicates data corruption or mismatch.")
     else:
         print("\n✓ All test ground truth users exist in candidate pool")
