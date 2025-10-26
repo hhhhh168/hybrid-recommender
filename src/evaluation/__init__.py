@@ -8,6 +8,7 @@ Provides tools for evaluating model performance, including:
 - Performance analysis and reporting
 """
 
+from src.evaluation.recommender_evaluator import RecommenderEvaluator
 from src.evaluation.cold_start_evaluator import (
     ColdStartEvaluator,
     evaluate_with_segments
@@ -19,6 +20,7 @@ from src.evaluation.batch_evaluator import (
 )
 
 __all__ = [
+    'RecommenderEvaluator',
     'ColdStartEvaluator',
     'evaluate_with_segments',
     'BatchEvaluator',
