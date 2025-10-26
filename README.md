@@ -44,7 +44,6 @@ hybrid-recommender/
 │   ├── utils.py          # Config and logging utilities
 │   ├── data_loader.py    # Data loading and preprocessing
 │   ├── preprocessing.py  # Feature engineering and data transformation
-│   ├── evaluation.py     # Evaluation metrics and utilities
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── base_recommender.py      # Abstract base class for all models
@@ -52,6 +51,10 @@ hybrid-recommender/
 │   │   ├── nlp_recommender.py       # NLP-based content model
 │   │   └── hybrid_recommender.py    # Hybrid model combining CF + NLP
 │   └── evaluation/       # Evaluation modules
+│       ├── __init__.py
+│       ├── recommender_evaluator.py # Core evaluation metrics (RecommenderEvaluator)
+│       ├── batch_evaluator.py       # Batch evaluation with sampling
+│       └── cold_start_evaluator.py  # Segment-specific evaluation
 ├── scripts/
 │   ├── evaluate_all_models.py  # Comprehensive model comparison
 │   └── evaluate_by_segment.py  # Segment-specific evaluation
@@ -200,7 +203,7 @@ The hybrid recommender system consists of three main recommendation models:
    ↓
 5. Recommendation Generation
    ↓
-6. Evaluation (src/evaluation.py)
+6. Evaluation (src/evaluation/)
 ```
 
 ### Key Features
